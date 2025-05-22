@@ -10,15 +10,18 @@ use Orchid\Support\Facades\Dashboard;
 
 class CKEditorServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(ViewFactory $viewFactory): void // Используем ViewFactory здесь
     {
-        $this->callAfterResolving('view', static function (ViewFactory $factory) {
-            $factory->composer('platform::app', static function () {
-                Dashboard::registerResource('scripts', asset('vendor/vadimshevelinski/orchid-ckeditor-full/orchid_ckeditor.js'));
-            });
+        // Публикация ассетов твоего пакета
+        $this->offerPublishing();
+
+        $this->callAfterResolving(Dashboard::class, function (Dashboard $dashboard) {
+
+            $dashboard->registerResource('scripts', 'https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/translations/ru.js');
+
+            $dashboard->registerResource('scripts', asset('vendor/vadimshevelinski/orchid-ckeditor-full/js/orchid_ckeditor.js'));
         });
 
-        $this->offerPublishing();
     }
 
     public function register(): void
