@@ -1,6 +1,6 @@
 {
-  "name": "nakipelo/orchid-ckeditor",
-  "description": "CKEditor editor for Laravel Orchid",
+  "name": "vadimshevelinski/orchid-ckeditor-full",
+  "description": "CKEditor5 editor for Laravel Orchid",
   "type": "library",
   "require": {
     "php": "^8.1",
