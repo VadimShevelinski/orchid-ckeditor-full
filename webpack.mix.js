@@ -6,4 +6,5 @@ mix
 	})
 	.js('resources/js/ckeditor.js', 'orchid_ckeditor.js')
 	.setPublicPath('public')
+	.sourceMaps()
 	.version();
