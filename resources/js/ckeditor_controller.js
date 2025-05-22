@@ -1,101 +1,49 @@
 import { Controller } from '@hotwired/stimulus'
-import { getEditorNamespace } from 'ckeditor4-integrations-common'
-import { useMeta } from "stimulus-use"
-
-function typeReader(type) {
-	if (!['classic', 'inline'].includes(type)) {
-		throw new Error('Allow only "classic" or "inline" type')
-	}
-
-	return type
-}
+import ClassicEditor from 'ckeditor5-custom-build-full/build/ckeditor'
+import { useMeta } from 'stimulus-use'
 
 export default class extends Controller {
+	static targets = ['editor', 'input']
 	static metaNames = ['csrf_token']
 
 	static values = {
-		options: {
-			type: Object,
-			default: {},
-		},
-		type: {
-			String,
-			default: 'classic',
-			reader: typeReader,
-		},
-		editorUrl: {
-			type: String,
-			default: '//cdn.ckeditor.com/4.22.1/full/ckeditor.js',
-		},
+		config: Object
 	}
-
-	static targets = [
-		'editor',
-		'input',
-	]
 
 	initialize() {
 		useMeta(this)
 	}
 
-	async connect() {
-		let csrfToken = this.csrfTokenMeta
-
-		try {
-			// Дожидаемся CKE
-			await getEditorNamespace(this.editorUrlValue)
-
-			const method = this.typeValue === 'inline' ? 'inline' : 'replace'
-
-			const options = this.optionsValue
-
-			this.editor = CKEDITOR[ method ](
-				this.editorTarget,
-				{...options, ...{fileTools_requestHeaders : { 'X-CSRF-Token': csrfToken } }}
-			)
-
-			this.editor.on('instanceReady', () => {
-				this.editor.on('change', () => {
-					const data = this.editor.getData()
-
-					if (this.inputTarget.value !== data) {
-						this.inputTarget.value = data
-					}
-				})
-
-				this.editor.on('mode', () => {
-					if(this.editor.mode === 'source') {
-						let editable = this.editor.editable()
-						editable.attachListener(editable, 'input', () => {
-							const data = this.editor.getData()
-
-							if (this.inputTarget.value !== data) {
-								this.inputTarget.value = data
-							}
-						})
-					}
-				})
-
-				this.editor.setData(this.inputTarget.value)
-			})
-		} catch (error) {
-			console.error(error)
-		}
-
-		this.maximizeClose = () => {
-			if (this.editor) {
-				const command = this.editor.getCommand('maximize')
-				if (command.state === CKEDITOR.TRISTATE_ON) {
-					this.editor.execCommand('maximize')
+	connect() {
+		const csrfToken = this.csrfTokenMeta
+		const config = {
+			...this.configValue,
+			simpleUpload: {
+				uploadUrl: '/upload',
+				headers: {
+					'X-CSRF-Token': csrfToken
 				}
 			}
 		}
 
-		addEventListener('popstate', this.maximizeClose)
+		ClassicEditor.create(this.editorTarget, config)
+			.then(editor => {
+				this.editor = editor
+
+				this.editor.model.document.on('change:data', () => {
+					this.inputTarget.value = this.editor.getData()
+				})
+
+				this.editor.setData(this.inputTarget.value)
+			})
+			.catch(error => {
+				console.error('Editor initialization error', error)
+			})
 	}
 
 	disconnect() {
-		removeEventListener('popstate', this.maximizeClose)
-		this.editor?.destroy()
+		if (this.editor) {
+			this.editor.destroy().catch(console.error)
+		}
 	}
 }
