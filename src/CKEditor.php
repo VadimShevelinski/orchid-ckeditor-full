@@ -1,45 +1,38 @@
 <?php
-
 declare(strict_types=1);
 
-namespace VadimShevelinski\OrchidCKEditor;
+namespace Nakipelo\Orchid\CKEditor;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\View\Factory as ViewFactory;
-use Orchid\Support\Facades\Dashboard;
+use Orchid\Screen\Field;
 
-class CKEditorServiceProvider extends ServiceProvider
+class CKEditor extends Field
 {
-    public function boot(): void
-    {
-        $this->callAfterResolving('view', static function (ViewFactory $factory) {
-            $factory->composer('platform::app', static function () {
-                Dashboard::registerResource('scripts', asset('vendor/orchid-ckeditor-full/orchid_ckeditor.js'));
-            });
-        });
+	/** @var string */
+	protected $view = 'ckeditor::field';
 
-        $this->offerPublishing();
-    }
+	/** @var array  */
+	protected $attributes = [
+		'options' => [],
+	];
 
-    public function register()
-    {
-        $this->loadViewsFrom(__DIR__.'/../views', 'ckeditor');
+	public static function make(?string $name = null): static
+	{
+		return (new static())
+			->name($name)
+			->setOptions(config('ckeditor.options', []));
+	}
 
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'ckeditor');
-    }
+	public function setOptions(array $options): CKEditor
+	{
+		$this->attributes['options'] = $options;
 
-    protected function offerPublishing()
-    {
-        if (! $this->app->runningInConsole()) {
-            return;
-        }
+		return $this;
+	}
 
-        $this->publishes([
-            __DIR__.'/../public' => public_path('vendor/orchid-ckeditor-full'),
-        ], ['ckeditor-assets', 'laravel-assets', 'orchid-assets']);
+	public function mergeOptions(array $options): CKEditor
+	{
+		$this->attributes['options'] = array_merge($this->attributes['options'], $options);
 
-        $this->publishes([
-            __DIR__.'/../config/config.php' => config_path('ckeditor.php'),
-        ], 'ckeditor-config');
-    }
+		return $this;
+	}
 }
