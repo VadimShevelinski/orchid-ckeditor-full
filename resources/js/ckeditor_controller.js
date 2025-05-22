@@ -10,11 +10,15 @@ export default class extends Controller {
 		config: Object
 	}
 
+
+
 	initialize() {
+		console.log('start editor')
 		useMeta(this)
 	}
 
 	connect() {
+		console.log('connect editor')
 		const csrfToken = this.csrfTokenMeta
 		const config = {
 			...this.configValue,
@@ -50,6 +54,7 @@ export default class extends Controller {
 	}
 
 	disconnect() {
+		console.log('disconnect editor')
 		if (this.editor) {
 			this.editor.destroy().catch(console.error)
 		}
