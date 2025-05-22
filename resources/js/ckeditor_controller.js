@@ -23,6 +23,14 @@ export default class extends Controller {
 				headers: {
 					'X-CSRF-Token': csrfToken
 				}
+			},
+			image: {
+				toolbar: [
+					'imageStyle:full',
+					'imageStyle:side',
+					'|',
+					'imageTextAlternative'
+				]
 			}
 		}
 
