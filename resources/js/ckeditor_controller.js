@@ -1,12 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
-// import ClassicEditor from 'ckeditor5-custom-build-full/build/ckeditor'; // <-- УДАЛИ или ЗАКОММЕНТИРУЙ ЭТУ СТРОКУ
+// import ClassicEditor from 'ckeditor5-custom-build-full/build/ckeditor';
 import { useMeta } from 'stimulus-use';
 
-let EditorInstanceFromCDN; // Используем это, чтобы избежать конфликта имен
+let EditorInstanceFromCDN;
 
 export default class extends Controller {
 	static targets = ['editor', 'input'];
-	static metaNames = ['csrf-token']; // Для <meta name="csrf-token" ...>
+	static metaNames = ['csrf-token'];
 	static values = {
 		config: { type: Object, default: {} }
 	};
@@ -15,7 +15,7 @@ export default class extends Controller {
 
 	initialize() {
 		useMeta(this);
-		EditorInstanceFromCDN = window.ClassicEditor; // Получаем CKEditor из window
+		EditorInstanceFromCDN = window.ClassicEditor;
 	}
 
 	connect() {
@@ -32,15 +32,6 @@ export default class extends Controller {
 		const csrfToken = this.csrfTokenMeta;
 		const baseConfig = JSON.parse(JSON.stringify(this.configValue || {}));
 
-		// ОЧИСТКА от опций CKEditor 4
-		delete baseConfig.filebrowserImageBrowseUrl;
-		delete baseConfig.filebrowserImageUploadUrl;
-		delete baseConfig.filebrowserBrowseUrl;
-		delete baseConfig.filebrowserUploadUrl;
-		delete baseConfig.fileBrowserUploadUrl;
-
-		// Конфигурация для СТАНДАРТНОЙ CDN сборки 'classic'
-		// Убери или адаптируй опции, если их нет в этой сборке
 		const cdnConfig = {
 			...baseConfig, // Настройки из PHP (после очистки) будут иметь приоритет
 			toolbar: {
@@ -55,21 +46,13 @@ export default class extends Controller {
 			},
 			image: {
 				toolbar: [
-					'imageTextAlternative'
-					// 'imageStyle:inline', // ImageStyle плагин может отсутствовать в базовой classic CDN
-					// 'toggleImageCaption'  // ImageCaption плагин может отсутствовать
+
 				]
 			},
 			// language: 'ru' // Если подключил языковой файл с CDN
 		};
 
-		// Удаляем simpleUpload, так как его нет в стандартной Classic CDN
 		delete cdnConfig.simpleUpload;
-		// Если используешь CKFinder, и он есть в CDN сборке (например, super-build),
-		// то раскомментируй и настрой:
-		// if (csrfToken && cdnConfig.ckfinder) { // CKFinder обычно сам обрабатывает CSRF
-		//     cdnConfig.ckfinder.uploadUrl = `/ckfinder-connector-url?command=QuickUpload&type=Images&responseType=json`;
-		// }
 
 		console.log('Stimulus CKEditor Controller: Final CKEditor 5 config for CDN:', JSON.parse(JSON.stringify(cdnConfig)));
 
