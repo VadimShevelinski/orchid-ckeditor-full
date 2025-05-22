@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Nakipelo\Orchid\CKEditor;
+namespace VadimShevelinski\OrchidCKEditor;
 
 use Orchid\Screen\Field;
 
